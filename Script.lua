@@ -25,3 +25,26 @@ Name = <string> - The name of the tab.
 Icon = <string> - The icon of the tab.
 PremiumOnly = <bool> - Makes the tab accessible to Sirus Premium users only.
 ]]
+
+Tab:AddButton({
+	Name = "No Jump Cooldown",
+	Callback = function()
+      		if game.PlaceId == 2788229376 then
+    local gmt = getrawmetatable(game)
+    setreadonly(gmt, false)
+    local old = gmt.__newindex
+
+    gmt.__newindex = newcclosure(function(t,i,v)
+        if i == "JumpPower" then
+            return old(t,i,50)
+        end
+        return old(t,i,v)
+    end)
+end
+  	end    
+})
+
+--[[
+Name = <string> - The name of the button.
+Callback = <function> - The function of the button.
+]]

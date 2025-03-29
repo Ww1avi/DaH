@@ -1,184 +1,172 @@
-local TweenService = game:GetService("TweenService")
+-- Chargement des services nécessaires
 local Players = game:GetService("Players")
+local HttpService = game:GetService("HttpService")
 local LocalPlayer = Players.LocalPlayer
-local UserInputService = game:GetService("UserInputService")
+local Workspace = game:GetService("Workspace")
 
--- GUI Creation
+-- Création du GUI principal
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Parent = game:GetService("CoreGui")
-ScreenGui.Name = "CustomUI"
-ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = LocalPlayer:FindFirstChildOfClass("PlayerGui")
 
-local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 600, 0, 350)
-MainFrame.Position = UDim2.new(0.5, -300, 0.5, -175)
-MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-MainFrame.BorderSizePixel = 0
-MainFrame.Parent = ScreenGui
-MainFrame.Visible = true
-MainFrame.ClipsDescendants = true
+local Frame = Instance.new("Frame", ScreenGui)
+Frame.Size = UDim2.new(0, 600, 0, 400)
+Frame.Position = UDim2.new(0.5, -300, 0.1, 0)
+Frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+Frame.BorderSizePixel = 0
+Frame.Active = true
+Frame.Draggable = true
 
--- Make GUI Draggable (Old Method)
-MainFrame.Active = true
-MainFrame.Draggable = true
+-- Ajout du menu des catégories
+local Categories = Instance.new("Frame", Frame)
+Categories.Size = UDim2.new(0, 150, 1, 0)
+Categories.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 
-local UICorner = Instance.new("UICorner")
-UICorner.CornerRadius = UDim.new(0, 8)
-UICorner.Parent = MainFrame
+local SellingButton = Instance.new("TextButton", Categories)
+SellingButton.Size = UDim2.new(1, 0, 0, 50)
+SellingButton.Text = "Selling Gui"
+SellingButton.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
 
--- Sidebar
-local Sidebar = Instance.new("Frame")
-Sidebar.Size = UDim2.new(0, 120, 1, 0)
-Sidebar.Position = UDim2.new(0, 0, 0, 0)
-Sidebar.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-Sidebar.Parent = MainFrame
+-- Add CashCounter button under the Selling button
+local CashCounterButton = Instance.new("TextButton", Categories)
+CashCounterButton.Size = UDim2.new(1, 0, 0, 50)
+CashCounterButton.Position = UDim2.new(0, 0, 0, 50)
+CashCounterButton.Text = "CashCounter"
+CashCounterButton.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
 
-local UIListLayout = Instance.new("UIListLayout")
-UIListLayout.Parent = Sidebar
-UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-UIListLayout.Padding = UDim.new(0, 5)
+-- Set Goal functionality
+local GoalLabel = Instance.new("TextLabel", Frame)
+GoalLabel.Size = UDim2.new(0, 300, 0, 50)
+GoalLabel.Position = UDim2.new(0, 160, 0, 250)
+GoalLabel.Text = "Goal Set: 0"
+GoalLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+GoalLabel.TextScaled = true
+GoalLabel.BackgroundTransparency = 1
 
--- Tab Button Function
-local function createTabButton(name)
-    local Button = Instance.new("TextButton")
-    Button.Size = UDim2.new(1, 0, 0, 50)
-    Button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-    Button.TextColor3 = Color3.fromRGB(255, 255, 255)
-    Button.Font = Enum.Font.Gotham
-    Button.TextSize = 16
-    Button.Text = name
-    Button.Parent = Sidebar
-    
-    local UICorner = Instance.new("UICorner")
-    UICorner.CornerRadius = UDim.new(0, 6)
-    UICorner.Parent = Button
+local GoalTextbox = Instance.new("TextBox", Frame)
+GoalTextbox.Size = UDim2.new(0, 100, 0, 50)
+GoalTextbox.Position = UDim2.new(0, 160, 0, 300)
+GoalTextbox.PlaceholderText = "Set Goal"
+GoalTextbox.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+GoalTextbox.TextColor3 = Color3.fromRGB(255, 255, 255)
 
-    return Button
-end
+local SetGoalButton = Instance.new("TextButton", Frame)
+SetGoalButton.Size = UDim2.new(0, 100, 0, 50)
+SetGoalButton.Position = UDim2.new(0, 270, 0, 300)
+SetGoalButton.Text = "Set Goal"
+SetGoalButton.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
 
-local MainTabButton = createTabButton("Main")
-local SellingTabButton = createTabButton("Selling") -- Changed name from Settings to Selling
+local currentGoal = 0
 
--- Main Tab
-local MainTab = Instance.new("Frame")
-MainTab.Size = UDim2.new(1, -120, 1, -40)
-MainTab.Position = UDim2.new(0, 120, 0, 40)
-MainTab.BackgroundTransparency = 1
-MainTab.Parent = MainFrame
-MainTab.Visible = true
+-- When SetGoalButton is clicked
+SetGoalButton.MouseButton1Click:Connect(function()
+    local goalValue = tonumber(GoalTextbox.Text)
+    if goalValue then
+        currentGoal = goalValue
+        GoalLabel.Text = "Goal Set: " .. currentGoal
+    else
+        GoalLabel.Text = "Invalid Goal"
+    end
+end)
 
--- Open CashCounter Button
-local CashCounterButton = Instance.new("TextButton")
-CashCounterButton.Size = UDim2.new(0.9, 0, 0, 40)
-CashCounterButton.Position = UDim2.new(0.05, 0, 0.1, 0)
-CashCounterButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-CashCounterButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-CashCounterButton.Font = Enum.Font.Gotham
-CashCounterButton.TextSize = 16
-CashCounterButton.Text = "Open CashCounter"
-CashCounterButton.Parent = MainTab
-
-local UICorner2 = Instance.new("UICorner")
-UICorner2.CornerRadius = UDim.new(0, 6)
-UICorner2.Parent = CashCounterButton
-
+-- When CashCounter button is clicked, it runs the external script
 CashCounterButton.MouseButton1Click:Connect(function()
     loadstring(game:HttpGet('https://raw.githubusercontent.com/Ww1avi/Script/refs/heads/main/CashCounter.lua'))()
 end)
 
--- Selling Tab
-local SellingTab = Instance.new("Frame")
-SellingTab.Size = UDim2.new(1, -120, 1, -40)
-SellingTab.Position = UDim2.new(0, 120, 0, 40)
-SellingTab.BackgroundTransparency = 1
-SellingTab.Parent = MainFrame
-SellingTab.Visible = false
+-- Contenu principal
+title = Instance.new("TextLabel", Frame)
+title.Size = UDim2.new(1, -150, 0, 50)
+title.Position = UDim2.new(0, 150, 0, 0)
+title.Text = "Category"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.TextScaled = true
+title.BackgroundTransparency = 1
 
--- Open Selling-Gui Button
-local SellingGuiButton = Instance.new("TextButton")
-SellingGuiButton.Size = UDim2.new(0.9, 0, 0, 40)
-SellingGuiButton.Position = UDim2.new(0.05, 0, 0.1, 0)
-SellingGuiButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-SellingGuiButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-SellingGuiButton.Font = Enum.Font.Gotham
-SellingGuiButton.TextSize = 16
-SellingGuiButton.Text = "Open Selling-Gui"
-SellingGuiButton.Parent = SellingTab
+local SearchBar = Instance.new("TextBox", Frame)
+SearchBar.Size = UDim2.new(1, -170, 0, 40)
+SearchBar.Position = UDim2.new(0, 160, 0, 60)
+SearchBar.PlaceholderText = "Selling Gui"
+SearchBar.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+SearchBar.TextColor3 = Color3.fromRGB(255, 255, 255)
+SearchBar.Visible = false
 
-local UICorner3 = Instance.new("UICorner")
-UICorner3.CornerRadius = UDim.new(0, 6)
-UICorner3.Parent = SellingGuiButton
+local AvatarImage = Instance.new("ImageLabel", Frame)
+AvatarImage.Size = UDim2.new(0, 100, 0, 100)
+AvatarImage.Position = UDim2.new(0.05, 160, 0.3, 0)
+AvatarImage.BackgroundTransparency = 1
+AvatarImage.Image = ""
 
-SellingGuiButton.MouseButton1Click:Connect(function()
-    loadstring(game:HttpGet('https://raw.githubusercontent.com/Ww1avi/Script/refs/heads/main/Selling.lua'))()
+local NameLabel = Instance.new("TextLabel", Frame)
+NameLabel.Size = UDim2.new(0.6, 0, 0, 50)
+NameLabel.Position = UDim2.new(0.2, 160, 0.3, 0)
+NameLabel.Text = "User: "
+NameLabel.TextWrapped = true
+NameLabel.BackgroundTransparency = 1
+NameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+NameLabel.TextScaled = true
+
+local CashLabel = Instance.new("TextLabel", Frame)
+CashLabel.Size = UDim2.new(0.6, 0, 0, 50)
+CashLabel.Position = UDim2.new(0.2, 160, 0.45, 0)
+CashLabel.Text = "Cash: "
+CashLabel.TextWrapped = true
+CashLabel.BackgroundTransparency = 1
+CashLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+CashLabel.TextScaled = true
+
+SellingButton.MouseButton1Click:Connect(function()
+    title.Text = "Selling Gui"
+    SearchBar.Visible = true
 end)
 
--- Tab Switching Logic
-MainTabButton.MouseButton1Click:Connect(function()
-    MainTab.Visible = true
-    SellingTab.Visible = false
-end)
-
-SellingTabButton.MouseButton1Click:Connect(function()
-    MainTab.Visible = false
-    SellingTab.Visible = true
-end)
-
--- Open/Close Animation
-local Open = false
-local function ToggleUI()
-    if Open then
-        local Tween = TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Size = UDim2.new(0, 600, 0, 0)})
-        Tween:Play()
-        Tween.Completed:Connect(function()
-            MainFrame.Visible = false
-        end)
-    else
-        MainFrame.Visible = true
-        local Tween = TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Size = UDim2.new(0, 600, 0, 350)})
-        Tween:Play()
+local function findPlayer(name)
+    name = name:lower():gsub("@", "")
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player.Name:lower():find(name) or player.DisplayName:lower():find(name) then
+            return player
+        end
     end
-    Open = not Open
+    return nil
 end
 
--- Toggle Keybind
-UserInputService.InputBegan:Connect(function(input, processed)
-    if not processed and input.KeyCode == Enum.KeyCode.RightShift then
-        ToggleUI()
+local function getCash(player)
+    if player:FindFirstChild("leaderstats") then
+        for _, stat in ipairs(player.leaderstats:GetChildren()) do
+            if stat:IsA("NumberValue") and (stat.Name:lower():find("cash") or stat.Name:lower():find("money") or stat.Name:lower():find("dhc")) then
+                return stat.Value
+            end
+        end
     end
-end)
+    if player:FindFirstChild("DataFolder") and player.DataFolder:FindFirstChild("Currency") then
+        return player.DataFolder.Currency.Value
+    end
+    return "?"
+end
 
--- Proper Dragging Script (New Method)
-local UIS = game:GetService("UserInputService")
-local dragging, dragInput, dragStart, startPos
-
-MainFrame.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = true
-        dragStart = input.Position
-        startPos = MainFrame.Position
-
-        input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                dragging = false
+SearchBar.FocusLost:Connect(function()
+    local player = findPlayer(SearchBar.Text)
+    if player then
+        local userId = player.UserId
+        AvatarImage.Image = "https://www.roblox.com/headshot-thumbnail/image?userId="..userId.."&width=100&height=100&format=png"
+        NameLabel.Text = "Pseudo: "..player.Name
+        task.spawn(function()
+            while player and player.Parent do
+                local cash = getCash(player)
+                CashLabel.Text = "Cash: "..cash
+                if tonumber(cash) >= currentGoal then
+                    -- Send notification to Discord webhook
+                    local webhookUrl = "https://discord.com/api/webhooks/1348234829715734588/ntOoi_968JSCSs1HA6gBxdkqnAQSVMHyiMrs0v_NNzW7YRNb8xVnFDczt_SzlMZBj8Y1"
+                    local data = {
+                        content = "Goal Reached🤟"
+                    }
+                    HttpService:PostAsync(webhookUrl, HttpService:JSONEncode(data), Enum.HttpContentType.ApplicationJson)
+                end
+                wait(0.5)
             end
         end)
+    else
+        NameLabel.Text = "Joueur non trouvé"
+        CashLabel.Text = ""
+        AvatarImage.Image = ""
     end
 end)
-
-MainFrame.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement then
-        dragInput = input
-    end
-end)
-
-UIS.InputChanged:Connect(function(input)
-    if input == dragInput and dragging then
-        local delta = input.Position - dragStart
-        MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-    end
-end)
-
--- Initial Open Animation
-wait(0.1)
-ToggleUI()
